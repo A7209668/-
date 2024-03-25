@@ -1,0 +1,259 @@
+<link href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css" rel="stylesheet" >
+
+<style>
+body{width:100%; 
+display:flex;flex-direction:column; 
+background:#666; 
+font-family:sans-serif,cursive;
+margin:0;overflow:hidden;}
+
+.標題{display:flex;justify-content:center;align-items:center;
+width:100%;height:100%;
+color:#3cc;background:#333;
+font-size:24;}
+
+.介面{height:100%;display:flex;align-items:center;}
+
+.管理介面{position:fixed;top:10%;bottom:0;
+width:30%;
+background:#222;opacity:0.8;
+border-radius:5px;
+transition:0.8s all;
+z-index:1;}
+
+.管理介面:hover{opacity:1;}
+
+.介面標題{display:flex;justify-content:center;align-items:center;
+color:white;background:#322;
+font-size:16px;
+padding:10px;}
+
+.new-car-entry{display:flex;flex-wrap:wrap;justify-content:center;
+color:white;
+padding:10px;gap:5px;}
+
+.new-car-entry div{display:grid;justify-content:center;
+width:10%;  
+background:#080;opacity:.8;
+border-radius:5px;
+padding:5px;
+cursor:pointer;}
+
+.new-car-entry div:hover{opacity:1;}
+
+.parking-container{width:100%;height:100%;
+display:flex;flex-direction:column;justify-content:center;align-items:center;}
+
+.parking-slots-holder{display:flex;justify-content:space-around;
+width:100%;}
+
+.停車格{width:50;height:100;
+display:flex;justify-content:center;align-items:center;
+color:#eee;background:#222;opacity:.75;
+border:2px solid #fff;
+font-size:36px;}
+
+.停車格:hover{opacity:1;}
+
+.路段{width:100%;height:10%;}
+
+#入口{border-bottom:10px dashed yellow;}
+
+.路口{width:100px;height:40%;
+display:flex;justify-content:center;align-items:center;
+border:solid #048;border-width:5 0 5 0;
+background:#333;color:white;
+font:48px cwTeXYen;writing-mode:tb;}
+
+.new-car-origin{position:absolute;right:0;
+width:50px;transform:rotate(270deg);}
+
+.queue{display:flex;flex-wrap:wrap;
+padding:10px;gap:5px;}
+
+.queue img{width:20px;height:40px;
+background:#012;opacity:.5;
+border:1px solid gray;border-radius:5px;
+padding:10px;}
+
+.queue img:hover{opacity:1;}
+
+.addtoqueue{font-size:16;text-align:center;
+color:#3cc;background:#333;opacity:.5;
+border:1px solid #3cc;border-radius:25px;
+padding:10px;margin:10px;cursor:pointer;}
+
+.addtoqueue:hover{opacity:1;}
+
+.圖示{position:fixed;top:0;
+color:white;font-size:18;}
+
+.置頂列{height:10%;}
+
+.標籤頁{display:flex;flex-wrap:wrap;}
+
+.標籤頁 input[type="checkbox"]{display:none;}
+
+.標籤頁 input[type="checkbox"]+label{width:30px;height:30px;
+display:grid;align-items:center;justify-items:center;
+position:absolute;top:0%;left:10%;z-index:2;
+border-radius:25px;background:#666;opacity:.5;
+padding:10px;cursor:pointer;transition:0.8s all;}
+.標籤頁 input[type="checkbox"]+label:hover{opacity:1;
+transform:rotate(360deg);}
+
+.標籤頁 input[type="checkbox"]:checked+label{opacity:1;}
+.標籤頁 input[type="checkbox"]:checked+label:hover{opacity:.5;}
+
+.標籤頁 input[type="checkbox"]+label+*{display:none;}
+.標籤頁 input[type="checkbox"]:checked+label+*{display:initial;}
+
+@keyframes 向右旋轉{100%{transform:rotate(360deg);}}
+</style>
+
+
+<body onload="初始化()">
+ <div class="置頂列">
+    <div class="標題">停車場 Parking</div>
+
+    <div class=圖示>
+<div>💰<span id=資金>0</span></div>
+<div>🕔<span id=小時>0</span>：<span id=分鐘>0</span></div>
+</div>
+ </div>
+ <div class="封面"><!-- 概念規劃 --></div>
+
+ <div class="標籤頁">
+    <input type="checkbox" id="標1" checked><label for="標1">⚙️</label>
+ <div class="管理介面">
+    <div class="介面標題">停車格 Slot（$50/1hr）</div>
+    <div class="new-car-entry"><!-- 動態JS --></div>
+    <div class="介面標題">候車區</div>
+    <div class="queue"><!-- 動態JS --></div>
+    <div class="addtoqueue" onclick="addtoqueue()">開門按鈕</div>
+</div>
+</div>
+
+<div class="車輛資訊">📋<!-- 概念規劃 --></div>
+
+    <div class="介面">
+        <div class="parking-container" id="parkingspace">
+            <div class="parking-slots-holder">
+                <div class="停車格" id="slot-1">1</div>
+                <div class="停車格" id="slot-2">2</div>
+                <div class="停車格" id="slot-3">3</div>
+                <div class="停車格" id="slot-4">4</div>
+                <div class="停車格" id="slot-5">5</div>
+            </div>
+            <div class="路段" id="入口"></div>
+            <div class="路段"></div>
+            <div class="parking-slots-holder">
+                <div class="停車格" id="slot-6">6</div>
+                <div class="停車格" id="slot-7">7</div>
+                <div class="停車格" id="slot-8">8</div>
+                <div class="停車格" id="slot-9">9</div>
+                <div class="停車格" id="slot-10">10</div>
+            </div>
+        </div>
+        <div class="路口">路口</div>
+    </div>
+</body>
+
+
+<script>
+
+var w,h;
+var parklock = false;
+var parklist = [0,0,0,0,0,0,0,0,0,0];
+var queueitems = 0; // 初始為 0
+
+初始化=()=>{
+    
+汽車=document.querySelector(".new-car-entry");
+for(i=1;i<=10;i++)
+汽車.innerHTML+=`<div onclick="進車(this.textContent-1)" id="slot${i}">${i}</div>`;
+    
+汽車=document.querySelector(".queue");
+for(i=1;i<=5;i++)
+汽車.innerHTML+=`<img id="queue${i}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'></svg>">`
+    
+/* document.getElementById('slot-1').getBoundingClientRect() */
+    w = parkingspace.offsetWidth;    h = parkingspace.offsetHeight;
+// 停車動畫
+var anim = document.createElement('style');
+var rule1 = document.createTextNode(`@-webkit-keyframes car-park {from { transform: rotate(270deg) }
+60% { transform: rotate(270deg) translate(0px,-${w}px) }
+80% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) }
+to { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,-${h*.25}px)}}`);
+anim.appendChild(rule1);
+var rule2 = document.createTextNode(`@-webkit-keyframes car-bottom {from { transform: rotate(270deg) }
+60% { transform: rotate(270deg) translate(0px,-${w}px) }
+80% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) }
+to { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,${h*.25}px)}}`);
+anim.appendChild(rule2);
+var rule3 = document.createTextNode(`@-webkit-keyframes car-exit-top {
+from { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,-${h*.25}px) }
+60% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,-${h*.25}px) translate(0px,${h*.25}px)}
+80% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,-${h*.25}px) translate(0px,${h*.25}px) rotate(90deg)}
+to { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,-${h*.25}px) translate(0px,${h*.25}px) rotate(90deg) translate(0px,-${w}px)}}`);
+anim.appendChild(rule3);
+var rule4 = document.createTextNode(`@-webkit-keyframes car-exit-bottom {
+from { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,${h*.25}px) }
+60% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,${h*.25}px) translate(0px,-${h*.25}px)}
+80% { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,${h*.25}px) translate(0px,-${h*.25}px) rotate(90deg)}
+to { transform: rotate(270deg) translate(0px,-${w}px) rotate(90deg) translate(0px,${h*.25}px) translate(0px,-${h*.25}px) rotate(90deg) translate(0px,-${w}px)}}`);
+anim.appendChild(rule4);
+parkingspace.appendChild(anim);}
+
+updatequeue=()=>{for(i=1;i<=5;i++){
+if(i<=queueitems){document.getElementById(`queue${i}`).src = 'https://cdn.pixabay.com/photo/2013/07/12/11/58/car-145008_1280.png';        }
+else{document.getElementById(`queue${i}`).src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'></svg>";}
+}}
+
+
+addtoqueue=()=>{var freeslotflag = 0;
+for(j=0;j<10;j++){if(parklist[j] != 1){freeslotflag = 1;
+alert("還有空位");break}}
+if(freeslotflag != 1){queueitems = queueitems + 1;
+if(queueitems > 5)alert("到達上限")
+else updatequeue();}
+}
+
+queuecheck=(slot)=>{if(queueitems > 0){queueitems = queueitems - 1;updatequeue();
+進車(slot);}}
+
+離場=(slot)=>{
+if(!parklock){parklist[slot] = 0;console.log(parklist);parklock = true;
+document.getElementById(`slot${slot+1}`).style.background = '#080';
+if(slot <= 4)document.getElementById(`car${slot}`).style.animation = 'car-exit-top 2s both';
+else document.getElementById(`car${slot}`).style.animation = 'car-exit-bottom 2s both';
+setTimeout(()=>{document.getElementById(`car${slot}`).remove();parklock=false;queuecheck(slot)},2000)}}
+
+generatenewcar=(slot)=>{img = document.createElement('img');
+img.id =`car${slot}`; img.className = 'new-car-origin';
+img.src = 'https://cdn.pixabay.com/photo/2013/07/12/11/58/car-145008_1280.png';    
+parkingspace.appendChild(img);}
+
+    /*
+    parkingspace.innerHTML+=`<img id="car${slot}" class="new-car-origin"
+    src="test.png">`;
+    
+    */
+
+進車=(slot)=>{if(!document.getElementById(`car${slot}`) && !parklock){parklist[slot] = 1;console.log(parklist);
+賺錢();
+parklock = true;
+generatenewcar(slot);
+document.getElementById(`slot${slot+1}`).style.background = '#800';
+if(slot !=4 && slot != 9)
+document.getElementById(`car${slot}`).style.right = (-w*.9+(((5 - (slot+1)%5))*(w*.16))+(w*.04))+'px'
+else document.getElementById(`car${slot}`).style.right = (-w*.9+(w*.04))+'px';
+if(slot <= 4) document.getElementById(`car${slot}`).style.animation = 'car-park 2s both';
+else document.getElementById(`car${slot}`).style.animation = 'car-bottom 2s both';
+setTimeout(()=>{parklock = false;},2000)
+}
+else{離場(slot)}
+}
+
+賺錢=()=>{資金.textContent=parseInt(資金.textContent)+50;}
+</script>
